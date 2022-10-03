@@ -7,21 +7,21 @@
 set T1 to minutes of (current date)
 set T1s to seconds of (current date)
 
----vars
-global mail, pass, mainPage, blackboardPage, ourName
+global mail, pass, mainPage, blackboardPage, ourName, keyTab, keySpace
 
+set keyTab to 48
+set keySpace to 49
 set pathConfig to POSIX path of (((path to me) as text) & "::") & "config/env"
 set pages to {"black", "microsoft"} --this use blackboard to save cache
 set mainPage to "https://uvmonline.blackboard.com/webapps/portal/execute/tabs/tabAction?tab_tab_group_id=_1_1"
-set mail to do shell script "cat " & pathConfig &"| head -n1"
+set mail to do shell script "cat " & pathConfig & "| head -n1"
 set pass to do shell script "cat " & pathConfig & "| head -n2 | tail -n1"
-set ourName to makeUpperCase(do shell script("cat "& pathConfig &"| head -n3 | tail -n1"))
+set ourName to makeUpperCase(do shell script ("cat " & pathConfig & "| head -n3 | tail -n1"))
 set blackboardPage to "https://uvmonline.blackboard.com"
 
 on makeUpperCase(namee)
-  return (do shell script "echo \"" & namee & "\"| tr \"[:lower:]\" \"[:upper:]\"")
+	return (do shell script "echo \"" & namee & "\"| tr \"[:lower:]\" \"[:upper:]\"")
 end makeUpperCase
-
 
 -- open safari
 to deleteCache(pages)
@@ -47,12 +47,28 @@ to deleteCache(pages)
 					-- log "wait button remove all"
 				end repeat
 				
-				
 				repeat with i in pages
+					set focused of text field 1 of sheet 1 to true
 					set value of text field 1 of sheet 1 to i
+					
 					-- press button "remove all"
-					click button "Remove All" of sheet 1
-					click button "Remove Now"
+					-- I try do with (click button "Remove All" of sheet 1) but for some reason, wait 6 or 7 second to click in the nex button, and with tabs and space it's immediately
+					key code keyTab
+					delay 0.2
+					key code keyTab
+					delay 0.2
+					key code keySpace
+					delay 0.2
+					
+					repeat until exists (button "Remove Now")
+						log "exists"
+					end repeat
+					if exists (button "Remove Now") then
+						delay 0.2
+						key code keyTab
+						delay 0.2
+						key code keySpace
+					end if
 				end repeat
 				
 				click button "Done" of sheet 1
@@ -68,7 +84,7 @@ to enterPage(pages)
 		activate
 		delay 1
 		-- open safari to go a uvm page
-		make new document at end of documents with properties {URL: blackboardPage}
+		make new document at end of documents with properties {URL:blackboardPage}
 		
 		set titlePage to ""
 		repeat until titlePage = "Ingreso a Blackboard - UVM Online"
@@ -76,7 +92,7 @@ to enterPage(pages)
 			set titlePage to name of window 1
 		end repeat
 		
-
+		
 		tell document 1
 			set res to ""
 			repeat until res = "interactive"
@@ -102,19 +118,19 @@ to enterPage(pages)
 			end repeat
 			
 			delay 1
-			do JavaScript "document.getElementById('i0116').value='"& mail & "'"
+			do JavaScript "document.getElementById('i0116').value='" & mail & "'"
 			do JavaScript "document.getElementById('idSIButton9').focus()"
 			do JavaScript "document.getElementById('idSIButton9').click()"
 			delay 1
-			do JavaScript "document.getElementById('i0118').value='"& pass & "'"
+			do JavaScript "document.getElementById('i0118').value='" & pass & "'"
 			do JavaScript "document.getElementById('idSIButton9').focus()"
 			do JavaScript "document.getElementById('idSIButton9').click()"
 			delay 1
 			do JavaScript "document.getElementById('idSIButton9').click()"
-
+			
 			set titlePage to ""
 			repeat until (titlePage = "Aviso Importante – Blackboard Learn") or ¬
-			(titlePage = "Bienvenido, " & ourName &" – Blackboard Learn")
+				(titlePage = "Bienvenido, " & ourName & " – Blackboard Learn")
 				set titlePage to name
 				-- log titlepage
 			end repeat
@@ -131,7 +147,7 @@ to enterPage(pages)
 	end tell
 end enterPage
 
-deletecache(pages) of me
+deleteCache(pages) of me
 enterPage(pages) of me
 
 set T2 to minutes of (current date)
