@@ -1,5 +1,5 @@
 -- details: this code delete cache of safari of microsoft and blackboard, then enter page of blackboard uvm and login with account
--- date: 24/09/22
+-- date: 24/SEP/22
 -- by: deliverst
 -- status: finish
 -- todo: nothing
@@ -10,11 +10,12 @@ set T1s to seconds of (current date)
 ---vars
 global mail, pass, mainPage, blackboardPage, ourName
 
+set pathConfig to POSIX path of (((path to me) as text) & "::") & "config/env"
 set pages to {"black", "microsoft"} --this use blackboard to save cache
 set mainPage to "https://uvmonline.blackboard.com/webapps/portal/execute/tabs/tabAction?tab_tab_group_id=_1_1"
-set mail to do shell script("cat ./config/env | head -n1")
-set pass to do shell script("cat ./config/env | head -n2 | tail -n1")
-set ourName to makeUpperCase(do shell script("cat ./config/env | head -n3 | tail -n1"))
+set mail to do shell script "cat " & pathConfig &"| head -n1"
+set pass to do shell script "cat " & pathConfig & "| head -n2 | tail -n1"
+set ourName to makeUpperCase(do shell script("cat "& pathConfig &"| head -n3 | tail -n1"))
 set blackboardPage to "https://uvmonline.blackboard.com"
 
 on makeUpperCase(namee)
