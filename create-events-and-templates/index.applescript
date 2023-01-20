@@ -107,32 +107,36 @@ to deleteCache(pages)
 				repeat with i in pages
 					set focused of text field 1 of sheet 1 to true
 					set value of text field 1 of sheet 1 to i
+					delay 1
 					
-					-- TODO: add validation to check if there are cookies to clean
-					
-					-- press button "remove all"
-					-- I try do with (click button "Remove All" of sheet 1) but for some reason, wait 6 or 7 second to click in the nex button, and with tabs and space it's immediately
-					key code keyTab
-					delay 0.2
-					key code keyTab
-					delay 0.2
-					key code keySpace
-					delay 0.2
-					
-					repeat until exists (button "Remove Now")
-						log "exists"
-					end repeat
-					if exists (button "Remove Now") then
+					if exists (name of UI element 1 of row 1 of table 1 of scroll area 1 of sheet 1) then
+						-- press button "remove all"
+						-- I try do with (click button "Remove All" of sheet 1) but for some reason, wait 6 or 7 second to click in the nex button, and with tabs and space it's immediately
+						key code keyTab
 						delay 0.2
 						key code keyTab
 						delay 0.2
 						key code keySpace
+						delay 1
+						
+						repeat until exists (button "Remove Now")
+							log "exists"
+						end repeat
+
+						if exists (button "Remove Now") then
+							delay 0.2
+							key code keyTab
+							delay 0.2
+							key code keySpace
+						end if
+					else
+						click button "Done" of sheet 1
+						click button 1
+						enterPage(pages) of me
 					end if
 				end repeat
-				
 				click button "Done" of sheet 1
 				click button 1
-				
 			end tell
 		end tell
 	end tell
@@ -215,9 +219,7 @@ end parseFloateNumber
 to enterPage(pages)
 	tell application "Safari"
 		
-		
 		loginPage() of me
-		
 		
 		-- click in button login and go to page to type email
 		tell current tab of window 1
