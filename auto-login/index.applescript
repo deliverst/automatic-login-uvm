@@ -2,8 +2,7 @@
 -- date: 24/SEP/22
 -- by: deliverst
 -- status: finish
--- todo: 
--- -> add validation to check if there are cookies to clean
+-- todo: nothing
 
 set T1 to minutes of (current date)
 set T1s to seconds of (current date)
@@ -44,6 +43,7 @@ to deleteCache(pages)
 				
 				-- waiting for button "remove all "
 				repeat until (get enabled of button "Remove All" of sheet 1 = true)
+				log "enter 1"
 					delay 0.2
 					-- log "wait button remove all"
 				end repeat
@@ -67,6 +67,7 @@ to deleteCache(pages)
 						delay 1
 						
 						repeat until exists (button "Remove Now")
+						log "enter 2"
 							log "exists"
 						end repeat
 
@@ -98,6 +99,7 @@ to enterPage(pages)
 		
 		set titlePage to ""
 		repeat until titlePage = "Ingreso a Blackboard - UVM Online"
+		log "enter 3"
 			-- log "wait title of page" &  titlepage
 			set titlePage to name of window 1
 		end repeat
@@ -106,6 +108,7 @@ to enterPage(pages)
 		tell document 1
 			set res to ""
 			repeat until res = "interactive"
+			log "enter 4"
 				set res to do JavaScript "document.readyState"
 				-- log "waiting to change interactive - " & res
 			end repeat
@@ -117,12 +120,14 @@ to enterPage(pages)
 			do JavaScript "document.getElementById('redirectProvidersDropdownButton').click()"
 			set titlePage to ""
 			repeat until titlePage = "Sign in to your account"
+			log "enter 5"
 				-- log "wait to chance title of page " & titlepage
 				set titlePage to name
 			end repeat
 			
 			set isLoad to ""
 			repeat until isLoad = "complete"
+			log "enter 6"
 				set isLoad to do JavaScript "document.readyState"
 				-- log "wait to change status page complete " & isload
 			end repeat
@@ -141,12 +146,15 @@ to enterPage(pages)
 			set titlePage to ""
 			repeat until (titlePage = "Aviso Importante – Blackboard Learn") ¬
 			             or (titlePage = "Bienvenido, " & ourName & " – Blackboard Learn") ¬
-			             or (titlePage = "Enlaces de interés")
+			             or (titlePage = "Cursos")
+			             -- or (titlePage = "Enlaces de interés")
+				log "enter 7"
 				set titlePage to name
 				-- log titlepage
 			end repeat
 			
 			repeat until res = "complete"
+			log "enter 8"
 				set res to do JavaScript "document.readyState"
 				-- log res
 			end repeat
@@ -159,7 +167,7 @@ to enterPage(pages)
 end enterPage
 
 deleteCache(pages) of me
--- enterPage(pages) of me
+enterPage(pages) of me
 
 set T2 to minutes of (current date)
 set T2s to seconds of (current date)
