@@ -62,6 +62,7 @@ to toCapitalize(aString)
 	end repeat
 	
 	return aNSString as text
+	
 end toCapitalize
 
 to parseDate(textDate)
@@ -122,7 +123,7 @@ to deleteCache(pages)
 						repeat until exists (button "Remove Now")
 							log "exists"
 						end repeat
-
+						
 						if exists (button "Remove Now") then
 							delay 0.2
 							key code keyTab
@@ -195,7 +196,8 @@ to loginPage()
 			set titlePage to ""
 			repeat until (titlePage = "Aviso Importante – Blackboard Learn") ¬
 				or (titlePage = "Bienvenido, " & ourName & " – Blackboard Learn") ¬
-				or (titlePage = "Enlaces de interés")
+				or (titlePage = "Enlaces de interés") ¬
+				or (titlePage = "Cursos")
 				set titlePage to name
 				-- log titlepage
 			end repeat
@@ -219,52 +221,66 @@ end parseFloateNumber
 to enterPage(pages)
 	tell application "Safari"
 		
-		loginPage() of me
+		-- loginPage() of me
 		
 		-- click in button login and go to page to type email
 		tell current tab of window 1
+			-- log("delay 5 seconds")
+			-- delay 5
 			
-			set totalSubjects to parseFloateNumber(do JavaScript "document.querySelectorAll('.course-org-list h4').length") of me
+			set totalSubjects to parseFloateNumber(do JavaScript "document.querySelectorAll('.favorites-group').length") of me
+			log totalSubjects
+		
 			
 			repeat with i from 0 to totalSubjects - 1
-				set nameOfSubject to do JavaScript "document.querySelectorAll('.course-org-list h4')[" & i & "].innerHTML"
-				if nameOfSubject is not "'Curso de inducción'" then
-					set nameOfSubject to do JavaScript "document.querySelectorAll('.course-org-list h4')[" & i & "].innerHTML"
-					set idCour to do JavaScript "document.querySelectorAll('.course-org-list h4')[" & i & "].parentElement.getAttribute('id')"
+				set nameOfSubject to do JavaScript "document.querySelectorAll('.favorites-group h4')[" & i & "].innerHTML"
+				if (nameOfSubject ≠ "ARQ DE ALMACENAMIENTO EN/NUBE") then
+					set idCour to do JavaScript "document.querySelectorAll('.favorites-group h4')[" & i & "]?.parentElement?.getAttribute('id')"
+					set idCalifas to do shell script "echo " & idCour & "| sed 's/course-link-//'"
+					log idCalifas
+					set nameProfessorX to toCapitalize(do JavaScript "document.querySelector('#course-list-course-" & idCalifas & " .instructors').innerText") of me
+					set nameProfessor to do shell script "echo " & nameProfessorX
+					log (nameProfessor)
 					
-					set nameProfessor to toCapitalize(do JavaScript "document.querySelectorAll('.ellipsis div bdi')[" & i & "].innerText") of me
+					
 					do shell script "echo " & nameProfessor & " >> tempData.sh"
 					
 					do JavaScript "document.querySelector('#" & idCour & "').click()"
-					delay 5
-					set idCalifas to do shell script "echo " & idCour & "| sed 's/course-link-//'"
-
+					delay 1
+					set isLoadd to ""
+					repeat until isLoadd = "complete"
+						set isLoadd to do JavaScript "document.readyState"
+						-- log "wait to change status page complete " & isloadd
+					end repeat
+					
+					
 					set scorePage to "https://uvmonline.blackboard.com/webapps/blackboard/content/launchLink.jsp?course_id=" & idCalifas & "&tool_id=_133_1&tool_type=TOOL&mode=view&mode=reset"
 					set URL to scorePage
-					
 					delay 5
 					
 					set totalHomework to do JavaScript "document.getElementById('grades_wrapper').childElementCount"
 					set nameOfSubject to toCapitalize(do JavaScript "document.getElementById('crumb_1').innerText") of me
+					log nameOfSubject
 					do shell script "echo " & nameOfSubject & " >> tempData.sh"
 					set t to do shell script "echo " & totalHomework & "| sed -E 's/\\.0//'"
 					
-					delay 2
-					
+
 					repeat with i from t - 1 to 1 by -1
-						set indexOfHomework to do JavaScript "document.getElementById('grades_wrapper').childElements()[" & i & "]?.childNodes?.[3]?.childElements()?.[0]?.innerText.match(/\\d/)"
+
+					    -- set indexOfHomework to do JavaScript "document.getElementById('grades_wrapper').childElements()["& i &"]?.childNodes?.[3]?.childElements()?.[0]?.innerText.match(/\\d/) || false"
+						set indexOfHomework to do JavaScript "document.getElementById('grades_wrapper').childElements()["& i &"]?.childNodes?.[3]?.childElements()?.[0]?.innerText.match(/\\d/)"
 						set indexParsed to addZeroIncrementNumber(indexOfHomework) of me
 						set titleOfHomework to toCapitalize(do JavaScript "document.getElementById('grades_wrapper').childElements()[" & i & "]?.childNodes?.[3]?.childElements()?.[0]?.innerText.replace(\"Actividad \", \"\").replace(/^\\d\\. /, \"\" )") of me
 						set dateOfHomework to do JavaScript "document.getElementById('grades_wrapper').childElements()[" & i & "]?.childNodes?.[3]?.childElements()?.[1]?.innerText.replace(\"VENCIMIENTO: \", \"\")"
 						set titleCompleteCalendar to "Act " & indexParsed & ".- " & titleOfHomework & " | " & nameOfSubject
 						set dateComplete to parseDate(dateOfHomework) of me
+						log titleCompleteCalendar
 						do shell script "echo " & indexParsed & ".- " & titleOfHomework & " >> tempData.sh"
-						
-						
+
 						set loc to "UVM - Campus Chihuahua Universidad del Valle de México, 31220 Chihuahua, CHIH, Mexico"
 						set link to do JavaScript "location.href"
 						set desc to "Profesor: " & nameProfessor & "
-Cuatrimestre: 5to"
+					Cuatrimestre: 5to"
 						
 						tell application "Calendar"
 							tell calendar "UVM Universidad"
@@ -282,24 +298,69 @@ Cuatrimestre: 5to"
 								end tell
 							end tell
 						end tell
-
+						
 					end repeat
 					
+
 					set URL to mainPage
+					
+					delay 1
+					
+					set isLoad to ""
+					repeat until isLoad = "complete"
+						set isLoad to do JavaScript "document.readyState"
+						-- log "wait to change status page complete " & isload
+					end repeat
+					
 					delay 5
+					
+					log ""
+
+
+
+
 					do shell script "./parse-data.sh"
 					do shell script "./create-templates.sh"
 					do shell script "rm tempDataParsed.sh"
+					
 				end if
 			end repeat
 		end tell
 	end tell
 end enterPage
 
-deleteCache(pages) of me
+-- deleteCache(pages) of me
 enterPage(pages) of me
 
 
 set T2 to minutes of (current date)
 set T2s to seconds of (current date)
 set TT_ to ((T2 * 60) + T2s) - ((T1 * 60) + T1s)
+
+
+
+
+-- if indexOfHomework then
+-- log "tiene index"
+-- set indexOfHomework to do JavaScript "document.getElementById('grades_wrapper').childElements()["& i &"]?.childNodes?.[3]?.childElements()?.[0]?.innerText.match(/\\d/)"
+-- set indexParsed to addZeroIncrementNumber(indexOfHomework) of me
+-- set titleOfHomework to toCapitalize(do JavaScript "document.getElementById('grades_wrapper').childElements()[" & i & "]?.childNodes?.[3]?.childElements()?.[0]?.innerText.replace(\"Actividad \", \"\").replace(/^\\d\\. /, \"\" )") of me
+-- set dateOfHomework to do JavaScript "document.getElementById('grades_wrapper').childElements()[" & i & "]?.childNodes?.[3]?.childElements()?.[1]?.innerText.replace(\"VENCIMIENTO: \", \"\")"
+-- set titleCompleteCalendar to "Act " & indexParsed & ".- " & titleOfHomework & " | " & nameOfSubject
+-- set dateComplete to parseDate(dateOfHomework) of me
+-- do shell script "echo " & indexParsed & ".- " & titleOfHomework & " >> tempData.sh"
+
+-- else
+-- continue
+-- set dateOfHomework to do JavaScript "document.getElementById('grades_wrapper').childElements()[" & i & "]?.childNodes?.[3]?.childElements()?.[1]?.innerText.replace(\"VENCIMIENTO: \", \"\")"
+-- set dateComplete to parseDate(dateOfHomework) of me
+
+-- repeat with j from t - 1 to 1 by -1
+-- 	set indexParsed to  addZeroIncrementNumber(j) of me
+-- 	set titleOfHomework to (do JavaScript "document.getElementById('grades_wrapper').childElements()[" & j & "]?.childNodes?.[3]?.childElements()?.[0]?.innerText") of me
+-- 	set titleCompleteCalendar to "Act " & indexParsed & ".- " & titleOfHomework & " | " & nameOfSubject
+-- end repeat
+
+-- do shell script "echo " & indexParsed & ".- " & titleOfHomework & " >> tempData.sh"
+
+-- end if
