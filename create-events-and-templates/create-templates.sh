@@ -10,7 +10,7 @@
 # import subjects, name of professor and names of homeworks
 source "tempDataParsed.sh"
 
-SchoolCycle="5to Cuatrimestre"
+SchoolCycle="6to Cuatrimestre"
 mainPath="/Users/deliverst/Library/Mobile Documents/com~apple~CloudDocs/UVM"
 
 for ((x = 0; x < ${#activities[@]}; x++)); do
