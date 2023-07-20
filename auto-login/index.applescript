@@ -3,6 +3,7 @@
 -- by: deliverst
 -- status: finish
 -- todo: nothing
+-- https://eastmanreference.com/complete-list-of-applescript-key-codes
 
 set T1 to minutes of (current date)
 set T1s to seconds of (current date)
